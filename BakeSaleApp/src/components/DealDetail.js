@@ -8,6 +8,7 @@ import ajax from '../ajax';
 class DealDetail extends React.Component {
     static propTypes = {
       initialDealData: PropTypes.object.isRequired,
+      onBack: PropTypes.func.isRequired
     }
     state = {
       deal: this.props.initialDealData,
@@ -22,6 +23,9 @@ class DealDetail extends React.Component {
         const { deal } = this.state
         return (
          <View style={styles.deal}>
+          <TouchableOpacity style={styles.backButton} onPress={this.props.onBack}>
+            <Text>Back</Text>
+          </TouchableOpacity>
             <Image style={styles.image} source={{ uri: deal.media[0] }} />
             <View style={styles.info}>
               <Text style={styles.title}>{deal.title}</Text>
@@ -53,15 +57,15 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: 150,
-    // backgroundColor: '#ccc',
+    backgroundColor: '#ccc',
   },
   info: {
     alignItems: 'center',
   },
   detail: {
-    // borderColor: '#bbb',
-    // borderWidth: 1,
-    // marginBottom: 50,
+    borderColor: '#bbb',
+    borderWidth: 1,
+    marginBottom: 50,
   },
   title: {
     fontSize: 16,
