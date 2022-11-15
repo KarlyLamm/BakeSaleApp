@@ -50,9 +50,7 @@ class DealDetail extends React.Component {
 
 const styles = StyleSheet.create({
   deal: {
-    flex: 1,
-    paddingTop: 50,
-    paddingBottom: 50,
+  marginHorizontal: 12,
   },
   image: {
     width: '100%',
