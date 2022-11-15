@@ -1,17 +1,64 @@
 import React from 'react';
-import { Text, Image, StyleSheet, View, TouchableOpacity } from 'react-native';
+import { Text, Image, StyleSheet, View, TouchableOpacity, PanResponder, Animated, Dimensions } from 'react-native';
 import PropTypes from 'prop-types'
 
 import {priceDisplay} from '../util'
 import ajax from '../ajax';
 
 class DealDetail extends React.Component {
+  imageXPosition = new Animated.Value(0);
+  imagePanResponder = PanResponder.create({
+    onStartShouldSetPanResponder: ()=> true,
+    onPanResponderMove: (evt, gs) => {
+      this.imageXPosition.setValue(gs.dx);
+      console.log('moving', gs.dx)
+    },
+    onPanResponderRelease: (evt, gs) => {
+      const width = Dimensions.get('window').width;
+      if(Math.abs(gs.dx) > width * 0.4){
+        const direction = Math.sign(gs.dx); // -1 = swipe left, +1 = swipe right
+        Animated.timing(this.imageXPosition, {
+          //-1 for left, 1 for right
+          toValue: direction * width,
+          duration: 250,
+        }).start(() => {
+          this.handleSwipe(-1 * direction)
+        });
+      }else {
+        Animated.spring(this.imageXPosition, {
+          toValue: 0,
+        }).start();
+      }
+      console.log("released")
+    },
+  });
+
+  handleSwipe = (indexDirection) => {
+    const width = Dimensions.get('window').width;
+    if(!this.state.deal.media[this.state.imageIndex + indexDirection]){
+      Animated.spring(this.imageXPosition, {
+        toValue: 0,
+      }).start();
+      return;
+    }
+    this.setState((prevState)=>({ 
+      imageIndex: prevState.imageIndex + indexDirection  
+    }), () => {
+      //next image animation
+      this.imageXPosition.setValue(indexDirection * width);
+      Animated.spring(this.imageXPosition, {
+        toValue: 0,
+      }).start();
+    }
+    );
+  }
     static propTypes = {
       initialDealData: PropTypes.object.isRequired,
       onBack: PropTypes.func.isRequired
     }
     state = {
       deal: this.props.initialDealData,
+      imageIndex: 0,
     };
     async componentDidMount(){
       const fullDeal = await ajax.fetchDealDetail(this.state.deal.key)
@@ -26,7 +73,7 @@ class DealDetail extends React.Component {
           <TouchableOpacity style={styles.backButton} onPress={this.props.onBack}>
             <Text>Back</Text>
           </TouchableOpacity>
-            <Image style={styles.image} source={{ uri: deal.media[0] }} />
+            <Animated.Image {...this.imagePanResponder.panHandlers} style={[styles.image, {left: this.imageXPosition }]} source={{ uri: deal.media[this.state.imageIndex] }} />
             <View style={styles.info}>
               <Text style={styles.title}>{deal.title}</Text>
               <View style={styles.footer}>
